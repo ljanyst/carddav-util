@@ -1,10 +1,10 @@
-carddav-copy
+carddav-util
 ============
 
-*carddav-copy* is a python scripts that moves contact information between
-a CardDAV server and a local file. It can dump entire addressbook to
-a vCard file and then re-upload this information to another CardDAV
-server.
+*carddav-util* is a python script capable of processing contact information
+at CardDAV servers. In particular it can move contact information between
+a CardDAV server and a local file; it dumps entire addressbooks to a vCard
+file and then may be used re-upload them to another CardDAV server.
 
 Requirements
 ------------
@@ -24,7 +24,7 @@ Usage
 
 ownCloud:
 
-    ./carddav-copy.py   \
+    ./carddav-util.py   \
         --download      \
         --user=username \
         --file=test.vcf \
@@ -45,10 +45,22 @@ Where:
 Authentication:
  * If your server uses digest authentication, you need to add *--digest*.
 
+Regenerating the formated name (FN) tag:
+
+    ./carddav-copy.py   \
+        --fixfn         \
+        --user=username \
+        --file=dummy    \
+        --url=https://domain.com/baikal/card.php/addressbooks/username/bookid
+
+This overwrite the formated name tag with a string created frome the following
+name fields in the following order: *prefix first_name middle_name familty_name
+suffix*
+
 License
 -------
 
-Copyright (c) 2012, Lukasz Janyst &lt;ljanyst@buggybrain.net&gt;
+Copyright (c) 2012 by Lukasz Janyst &lt;ljanyst@buggybrain.net&gt;
 
 Permission to use, copy, modify, and/or distribute this software for any
 purpose with or without fee is hereby granted, provided that the above
