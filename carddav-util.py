@@ -23,6 +23,54 @@ import carddav
 import vobject
 
 #-------------------------------------------------------------------------------
+# Fix FN
+#-------------------------------------------------------------------------------
+def fixFN( url, filename, user, passwd, auth ):
+    print '[i] Editing at', url, '...'
+    print '[i] Listing the addressbook...'
+    dav    = carddav.PyCardDAV( url, user=user, passwd=passwd, auth=auth,
+                                write_support=True )
+    abook  = dav.get_abook()
+    nCards = len( abook.keys() )
+    print '[i] Found', nCards, 'cards.'
+
+    curr = 1
+    for href, etag in abook.items():
+        print "\r[i] Processing", curr, "of", nCards,
+        sys.stdout.flush()
+        curr += 1
+        card = dav.get_vcard( href )
+        card = card.split( '\r\n' )
+
+        cardFixed = []
+        for l in card:
+            if not l.startswith( 'FN:' ):
+                cardFixed.append( l )
+        cardFixed = '\r\n'.join( cardFixed )
+
+        c = vobject.readOne( cardFixed )
+
+        n = [c.n.value.prefix, c.n.value.given, c.n.value.additional,
+             c.n.value.family, c.n.value.suffix]
+        name = ''
+        for part in n:
+            if part:
+                name += part + ' '
+        name = name.strip()
+ 
+        if not hasattr( c, 'fn' ):
+            c.add('fn')
+        c.fn.value = name
+
+        try:
+            dav.update_vcard( c.serialize().decode( 'utf-8' ), href, etag )
+        except Exception, e:
+            print ''
+            raise
+    print ''
+    print '[i] All updated'
+
+#-------------------------------------------------------------------------------
 # Download
 #-------------------------------------------------------------------------------
 def download( url, filename, user, passwd, auth ):
@@ -92,7 +140,7 @@ def upload( url, filename, user, passwd, auth ):
 # Print help
 #-------------------------------------------------------------------------------
 def printHelp():
-    print( 'carddav_copy.py [options]' )
+    print( 'carddav-util.py [options]' )
     print( ' --url=http://your.addressbook.com CardDAV addressbook           ' )
     print( ' --file=local.vcf                  local vCard file              ' )
     print( ' --user=username                   username                      ' )
@@ -100,6 +148,7 @@ def printHelp():
     print( '                                   prompt for it in the console  ' )
     print( ' --download                        copy server -> file           ' )
     print( ' --upload                          copy file -> server           ' )
+    print( ' --fixfn                           regenerate the FN tag         ' )
     print( ' --digest                          use digest authentication     ' )
     print( ' --help                            this help message             ' )
 
@@ -109,7 +158,7 @@ def printHelp():
 def main():
     try:
         params = ['url=', 'file=', 'download', 'upload', 'help',
-                  'user=', 'passwd=', 'digest']
+                  'user=', 'passwd=', 'digest', 'fixfn']
         optlist, args = getopt.getopt( sys.argv[1:], '', params )
     except getopt.GetoptError, e:
         print '[!]', e
@@ -120,8 +169,8 @@ def main():
         printHelp()
         return 0
 
-    if '--upload' in opts and '--download' in opts:
-        print '[!] You can not download and upload at the same time'
+    if '--upload' in opts and '--download' in opts and '--fixfn' in opts:
+        print '[!] You can only choose one action at a time'
         return 2
 
     if '--url' not in opts or '--file' not in opts:
@@ -145,7 +194,7 @@ def main():
         else:
             passwd = getpass.getpass( user+'\'s password (won\'t be echoed): ')
 
-    commandMap = {'--upload': upload, '--download': download}
+    commandMap = {'--upload': upload, '--download': download, '--fixfn': fixFN}
     for command in commandMap:
         if command in opts:
             i = 0
