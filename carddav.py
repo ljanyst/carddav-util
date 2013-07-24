@@ -108,7 +108,8 @@ class PyCardDAV(object):
         if auth == 'basic':
             self._settings['auth'] = (user, passwd,)
         if auth == 'digest':
-            self._settings['auth'] = ('digest', user, passwd)
+            from requests.auth import HTTPDigestAuth
+            self._settings['auth'] = HTTPDigestAuth(user, passwd)
         self._default_headers = {"User-Agent": "pyCardDAV"}
         response = self.session.request('PROPFIND', resource,
                                         headers=self.headers,
