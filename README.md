@@ -39,7 +39,7 @@ Baïkal:
         --url=https://domain.com/baikal/card.php/addressbooks/username/bookid
 
 Where:
- * username is youre username - the one that you specified on the commandline
+ * username is your username - the one that you specified on the commandline
  * bookid is the identifier of your addressbook
 
 Authentication:
@@ -53,8 +53,8 @@ Regenerating the formated name (FN) tag:
         --file=dummy    \
         --url=https://domain.com/baikal/card.php/addressbooks/username/bookid
 
-This overwrite the formated name tag with a string created frome the following
-name fields in the following order: *prefix first_name middle_name familty_name
+This overwrites the formated name tag with a string created from the following
+name fields in the following order: *prefix first_name middle_name family_name
 suffix*
 
 License
