@@ -89,7 +89,7 @@ def download( url, filename, user, passwd, auth ):
         sys.stdout.flush()
         curr += 1
         card = dav.get_vcard( href )
-        f.write( card.encode('utf-8') + '\n' )
+        f.write( card + '\n' )
     print ''
     f.close()
     print '[i] All saved to:', filename
