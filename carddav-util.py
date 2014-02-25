@@ -25,11 +25,11 @@ import vobject
 #-------------------------------------------------------------------------------
 # Fix FN
 #-------------------------------------------------------------------------------
-def fixFN( url, filename, user, passwd, auth ):
+def fixFN( url, filename, user, passwd, auth, verify ):
     print '[i] Editing at', url, '...'
     print '[i] Listing the addressbook...'
     dav    = carddav.PyCardDAV( url, user=user, passwd=passwd, auth=auth,
-                                write_support=True )
+                                write_support=True, verify=verify )
     abook  = dav.get_abook()
     nCards = len( abook.keys() )
     print '[i] Found', nCards, 'cards.'
@@ -73,10 +73,11 @@ def fixFN( url, filename, user, passwd, auth ):
 #-------------------------------------------------------------------------------
 # Download
 #-------------------------------------------------------------------------------
-def download( url, filename, user, passwd, auth ):
+def download( url, filename, user, passwd, auth, verify ):
     print '[i] Downloading from', url, 'to', filename, '...'
     print '[i] Donwloading the addressbook...'
-    dav    = carddav.PyCardDAV( url, user=user, passwd=passwd, auth=auth )
+    dav    = carddav.PyCardDAV( url, user=user, passwd=passwd, auth=auth,
+                                verify=verify )
     abook  = dav.get_abook()
     nCards = len( abook.keys() )
     print '[i] Found', nCards, 'cards.'
@@ -97,7 +98,7 @@ def download( url, filename, user, passwd, auth ):
 #-------------------------------------------------------------------------------
 # Upload
 #-------------------------------------------------------------------------------
-def upload( url, filename, user, passwd, auth ):
+def upload( url, filename, user, passwd, auth, verify ):
     if not url.endswith( '/' ):
         url += '/'
 
@@ -112,8 +113,8 @@ def upload( url, filename, user, passwd, auth ):
     print '[i] Successfuly read and validated', nCards, 'entries'
 
     print '[i] Connecting to', url, '...'
-    dav = carddav.PyCardDAV( url, user=user, passwd=passwd,
-                             write_support=True, auth=auth )
+    dav = carddav.PyCardDAV( url, user=user, passwd=passwd, auth=auth,
+                             write_support=True, verify=verify )
 
     curr = 1
     for card in cards:
@@ -150,6 +151,7 @@ def printHelp():
     print( ' --upload                          copy file -> server           ' )
     print( ' --fixfn                           regenerate the FN tag         ' )
     print( ' --digest                          use digest authentication     ' )
+    print( ' --no-cert-verify                  skip certificate verification ' )
     print( ' --help                            this help message             ' )
 
 #-------------------------------------------------------------------------------
@@ -158,7 +160,7 @@ def printHelp():
 def main():
     try:
         params = ['url=', 'file=', 'download', 'upload', 'help',
-                  'user=', 'passwd=', 'digest', 'fixfn']
+                  'user=', 'passwd=', 'digest', 'no-cert-verify', 'fixfn']
         optlist, args = getopt.getopt( sys.argv[1:], '', params )
     except getopt.GetoptError, e:
         print '[!]', e
@@ -183,9 +185,13 @@ def main():
     user   = None
     passwd = None
     auth   = 'basic'
+    verify = True
 
     if '--digest' in opts:
         auth = 'digest'
+
+    if '--no-cert-verify' in opts:
+        verify = False
 
     if '--user' in opts:
         user = opts['--user']
@@ -199,7 +205,7 @@ def main():
         if command in opts:
             i = 0
             try:
-                i = commandMap[command]( url, filename, user, passwd, auth )
+                i = commandMap[command]( url, filename, user, passwd, auth, verify )
             except Exception, e:
                 print '[!]', e
 
