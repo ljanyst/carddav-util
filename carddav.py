@@ -104,7 +104,7 @@ class PyCardDAV(object):
         self.debug = debug
         self.session = requests.session()
         self.write_support = write_support
-        self._settings = {}
+        self._settings = {'verify': verify}
         if auth == 'basic':
             self._settings['auth'] = (user, passwd,)
         if auth == 'digest':
