@@ -32,7 +32,7 @@ ownCloud:
 
 Baïkal:
 
-    ./carddav-copy.py   \
+    ./carddav-util.py   \
         --download      \
         --user=username \
         --file=test.vcf \
@@ -47,7 +47,7 @@ Authentication:
 
 Regenerating the formated name (FN) tag:
 
-    ./carddav-copy.py   \
+    ./carddav-util.py   \
         --fixfn         \
         --user=username \
         --file=dummy    \
