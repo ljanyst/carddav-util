@@ -75,7 +75,7 @@ def fixFN( url, filename, user, passwd, auth, verify ):
 #-------------------------------------------------------------------------------
 def download( url, filename, user, passwd, auth, verify ):
     print '[i] Downloading from', url, 'to', filename, '...'
-    print '[i] Donwloading the addressbook...'
+    print '[i] Downloading the addressbook...'
     dav    = carddav.PyCardDAV( url, user=user, passwd=passwd, auth=auth,
                                 verify=verify )
     abook  = dav.get_abook()
