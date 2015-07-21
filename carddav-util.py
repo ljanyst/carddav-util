@@ -19,24 +19,24 @@ import sys
 import uuid
 import getopt
 import getpass
-import carddav
+from . import carddav
 import vobject
 
 #-------------------------------------------------------------------------------
 # Fix FN
 #-------------------------------------------------------------------------------
 def fixFN( url, filename, user, passwd, auth, verify ):
-    print '[i] Editing at', url, '...'
-    print '[i] Listing the addressbook...'
+    print('[i] Editing at', url, '...')
+    print('[i] Listing the addressbook...')
     dav    = carddav.PyCardDAV( url, user=user, passwd=passwd, auth=auth,
                                 write_support=True, verify=verify )
     abook  = dav.get_abook()
-    nCards = len( abook.keys() )
-    print '[i] Found', nCards, 'cards.'
+    nCards = len( list(abook.keys()) )
+    print('[i] Found', nCards, 'cards.')
 
     curr = 1
-    for href, etag in abook.items():
-        print "\r[i] Processing", curr, "of", nCards,
+    for href, etag in list(abook.items()):
+        print("\r[i] Processing", curr, "of", nCards, end=' ')
         sys.stdout.flush()
         curr += 1
         card = dav.get_vcard( href )
@@ -64,36 +64,36 @@ def fixFN( url, filename, user, passwd, auth, verify ):
 
         try:
             dav.update_vcard( c.serialize().decode( 'utf-8' ), href, etag )
-        except Exception, e:
-            print ''
+        except Exception as e:
+            print('')
             raise
-    print ''
-    print '[i] All updated'
+    print('')
+    print('[i] All updated')
 
 #-------------------------------------------------------------------------------
 # Download
 #-------------------------------------------------------------------------------
 def download( url, filename, user, passwd, auth, verify ):
-    print '[i] Downloading from', url, 'to', filename, '...'
-    print '[i] Downloading the addressbook...'
+    print('[i] Downloading from', url, 'to', filename, '...')
+    print('[i] Donwloading the addressbook...')
     dav    = carddav.PyCardDAV( url, user=user, passwd=passwd, auth=auth,
                                 verify=verify )
     abook  = dav.get_abook()
-    nCards = len( abook.keys() )
-    print '[i] Found', nCards, 'cards.'
+    nCards = len( list(abook.keys()) )
+    print('[i] Found', nCards, 'cards.')
 
     f = open( filename, 'w' )
 
     curr = 1
-    for href, etag in abook.items():
-        print "\r[i] Fetching", curr, "of", nCards,
+    for href, etag in list(abook.items()):
+        print("\r[i] Fetching", curr, "of", nCards, end=' ')
         sys.stdout.flush()
         curr += 1
         card = dav.get_vcard( href )
-        f.write( card + '\n' )
-    print ''
+        f.write( card.encode('utf-8') + '\n' )
+    print('')
     f.close()
-    print '[i] All saved to:', filename
+    print('[i] All saved to:', filename)
 
 #-------------------------------------------------------------------------------
 # Upload
@@ -102,23 +102,23 @@ def upload( url, filename, user, passwd, auth, verify ):
     if not url.endswith( '/' ):
         url += '/'
 
-    print '[i] Uploading from', filename, 'to', url, '...'
+    print('[i] Uploading from', filename, 'to', url, '...')
 
-    print '[i] Processing cards in', filename, '...'
+    print('[i] Processing cards in', filename, '...')
     f = open( filename, 'r' )
     cards = []
     for card in vobject.readComponents( f, validate=True ):
         cards.append( card )
     nCards = len(cards)
-    print '[i] Successfuly read and validated', nCards, 'entries'
+    print('[i] Successfuly read and validated', nCards, 'entries')
 
-    print '[i] Connecting to', url, '...'
+    print('[i] Connecting to', url, '...')
     dav = carddav.PyCardDAV( url, user=user, passwd=passwd, auth=auth,
                              write_support=True, verify=verify )
 
     curr = 1
     for card in cards:
-        print "\r[i] Uploading", curr, "of", nCards,
+        print("\r[i] Uploading", curr, "of", nCards, end=' ')
         sys.stdout.flush()
         curr += 1
 
@@ -130,12 +130,12 @@ def upload( url, filename, user, passwd, auth, verify ):
         card.uid.value = str( uuid.uuid4() )
         try:
             dav.upload_new_card( card.serialize().decode('utf-8') )
-        except Exception, e:
-            print ''
+        except Exception as e:
+            print('')
             raise
-    print ''
+    print('')
     f.close()
-    print '[i] All done'
+    print('[i] All done')
 
 #-------------------------------------------------------------------------------
 # Print help
@@ -162,8 +162,8 @@ def main():
         params = ['url=', 'file=', 'download', 'upload', 'help',
                   'user=', 'passwd=', 'digest', 'no-cert-verify', 'fixfn']
         optlist, args = getopt.getopt( sys.argv[1:], '', params )
-    except getopt.GetoptError, e:
-        print '[!]', e
+    except getopt.GetoptError as e:
+        print('[!]', e)
         return 1
 
     opts = dict(optlist)
@@ -172,11 +172,11 @@ def main():
         return 0
 
     if '--upload' in opts and '--download' in opts and '--fixfn' in opts:
-        print '[!] You can only choose one action at a time'
+        print('[!] You can only choose one action at a time')
         return 2
 
     if '--url' not in opts or '--file' not in opts:
-        print '[!] You must specify both the filename and the url'
+        print('[!] You must specify both the filename and the url')
         return 3
 
     url      = opts['--url']
@@ -206,8 +206,8 @@ def main():
             i = 0
             try:
                 i = commandMap[command]( url, filename, user, passwd, auth, verify )
-            except Exception, e:
-                print '[!]', e
+            except Exception as e:
+                print('[!]', e)
 
 if __name__ == '__main__':
     sys.exit(main())

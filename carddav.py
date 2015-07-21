@@ -41,7 +41,7 @@ contains the class PyCardDAV and some associated functions and definitions
 from collections import namedtuple
 import requests
 import sys
-import urlparse
+import urllib.parse
 import logging
 import lxml.etree as ET
 import string
@@ -49,14 +49,14 @@ import string
 def raise_for_status( resp ):
     if 400 <= resp.status_code < 500 or 500 <= resp.status_code < 600:
         msg  = 'Error code: ' + str(resp.status_code) + '\n'
-        msg += resp.content
+        msg += resp.content.decode(encoding='UTF-8')
         raise requests.exceptions.HTTPError( msg )
 
 def get_random_href():
     """returns a random href"""
     import random
     tmp_list = list()
-    for _ in xrange(3):
+    for _ in range(3):
         rand_number = random.randint(0, 0x100000000)
         tmp_list.append("{0:x}".format(rand_number))
     return "-".join(tmp_list).upper()
@@ -91,12 +91,12 @@ class PyCardDAV(object):
     """
 
     def __init__(self, resource, debug='', user='', passwd='',
-                 verify=True, write_support=False, auth='basic'):
+                 verify=False, write_support=False, auth='basic'):
         #shutup url3
         urllog = logging.getLogger('requests.packages.urllib3.connectionpool')
         urllog.setLevel(logging.CRITICAL)
 
-        split_url = urlparse.urlparse(resource)
+        split_url = urllib.parse.urlparse(resource)
         url_tuple = namedtuple('url', 'resource base path')
         self.url = url_tuple(resource,
                              split_url.scheme + '://' + split_url.netloc,
@@ -108,8 +108,7 @@ class PyCardDAV(object):
         if auth == 'basic':
             self._settings['auth'] = (user, passwd,)
         if auth == 'digest':
-            from requests.auth import HTTPDigestAuth
-            self._settings['auth'] = HTTPDigestAuth(user, passwd)
+            self._settings['auth'] = ('digest', user, passwd)
         self._default_headers = {"User-Agent": "pyCardDAV"}
         response = self.session.request('PROPFIND', resource,
                                         headers=self.headers,
@@ -228,7 +227,7 @@ class PyCardDAV(object):
                 new card (string or None)
         """
         self._check_write_support()
-        card = card.encode('utf-8')
+        #card = card.encode('utf-8')
         for _ in range(0, 5):
             rand_string = get_random_href()
             remotepath = str(self.url.resource + rand_string + ".vcf")
@@ -238,9 +237,9 @@ class PyCardDAV(object):
             response = requests.put(remotepath, data=card, headers=headers,
                                     **self._settings)
             if response.ok:
-                parsed_url = urlparse.urlparse(remotepath)
+                parsed_url = urllib.parse.urlparse(remotepath)
 
-                if response.headers['etag'] is None:
+                if response.headers.get('etag', None) is None:
                     etag = ''
                 else:
                     etag = response.headers['etag']
@@ -275,7 +274,7 @@ class PyCardDAV(object):
         :type xml: str()
         :rtype: dict() key: href, value: etag
         """
-        xml = string.replace( xml, '<?xml version="1.0" encoding="utf-8"?>', '', 1 )
+        xml = xml.decode(encoding='UTF-8').replace('<?xml version="1.0" encoding="utf-8"?>', '', 1 )
         namespace = "{DAV:}"
 
         element = ET.XML(xml)
