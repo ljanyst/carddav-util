@@ -212,9 +212,9 @@ class PyCardDAV(object):
         headers['content-type'] = 'text/vcard'
         if etag is not None:
             headers['If-Match'] = etag
-        result = self.session.delete(remotepath,
-                                     headers=headers,
-                                     **self._settings)
+        response = self.session.delete(remotepath,
+                                       headers=headers,
+                                       **self._settings)
         raise_for_status( response )
 
     def upload_new_card(self, card):
