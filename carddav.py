@@ -292,6 +292,7 @@ class PyCardDAV(object):
                         for props in prop.iterchildren():
                             if (props.tag == namespace + "getcontenttype" and
                                 (props.text == "text/vcard" or
+                                 props.text == "text/vcard; charset=utf-8" or
                                  props.text == "text/x-vcard" or
                                  props.text == "text/x-vcard; charset=utf-8")):
                                 insert = True
