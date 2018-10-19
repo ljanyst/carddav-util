@@ -19,7 +19,7 @@ import sys
 import uuid
 import getopt
 import getpass
-import carddav
+from pycarddav import carddav
 import vobject
 
 #-------------------------------------------------------------------------------
