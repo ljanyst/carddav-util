@@ -240,7 +240,7 @@ class PyCardDAV(object):
             if response.ok:
                 parsed_url = urlparse.urlparse(remotepath)
 
-                if response.headers['etag'] is None:
+                if 'etag' not in response.headers:
                     etag = ''
                 else:
                     etag = response.headers['etag']
