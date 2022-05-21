@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # vim: set ts=4 sw=4 expandtab sts=4:
 # Copyright (c) 2011-2013 Christian Geier & contributors
+# Copyright (c) 2013, 2022 by Lukasz Janyst <lukasz@jany.st>
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -24,9 +25,7 @@
 #-------------------------------------------------------------------------------
 # Lukasz Janyst:
 #
-# lxml encoding issue:
-# * Remove '<?xml version="1.0" encoding="utf-8"?>' header from responses
-#   to prevent etree errors
+# Update to python3:
 #
 # requests-0.8.2:
 # * Remove the verify ssl flag - caused exception
@@ -39,9 +38,9 @@ contains the class PyCardDAV and some associated functions and definitions
 """
 
 from collections import namedtuple
+from urllib.parse import urlparse
 import requests
 import sys
-import urlparse
 import logging
 import lxml.etree as ET
 import string
@@ -49,14 +48,14 @@ import string
 def raise_for_status( resp ):
     if 400 <= resp.status_code < 500 or 500 <= resp.status_code < 600:
         msg  = 'Error code: ' + str(resp.status_code) + '\n'
-        msg += resp.content
+        msg += str(resp.content)
         raise requests.exceptions.HTTPError( msg )
 
 def get_random_href():
     """returns a random href"""
     import random
     tmp_list = list()
-    for _ in xrange(3):
+    for _ in range(3):
         rand_number = random.randint(0, 0x100000000)
         tmp_list.append("{0:x}".format(rand_number))
     return "-".join(tmp_list).upper()
@@ -96,11 +95,12 @@ class PyCardDAV(object):
         urllog = logging.getLogger('requests.packages.urllib3.connectionpool')
         urllog.setLevel(logging.CRITICAL)
 
-        split_url = urlparse.urlparse(resource)
+        split_url = urlparse(resource)
         url_tuple = namedtuple('url', 'resource base path')
         self.url = url_tuple(resource,
                              split_url.scheme + '://' + split_url.netloc,
                              split_url.path)
+
         self.debug = debug
         self.session = requests.session()
         self.write_support = write_support
@@ -238,7 +238,7 @@ class PyCardDAV(object):
             response = requests.put(remotepath, data=card, headers=headers,
                                     **self._settings)
             if response.ok:
-                parsed_url = urlparse.urlparse(remotepath)
+                parsed_url = urlparse(remotepath)
 
                 if 'etag' not in response.headers:
                     etag = ''
@@ -275,7 +275,6 @@ class PyCardDAV(object):
         :type xml: str()
         :rtype: dict() key: href, value: etag
         """
-        xml = string.replace( xml, '<?xml version="1.0" encoding="utf-8"?>', '', 1 )
         namespace = "{DAV:}"
 
         element = ET.XML(xml)
